@@ -4,6 +4,7 @@ import requests
 import shutil
 import subprocess
 import tempfile
+import sqlite3
 
 from os import path
 from pathlib import Path
@@ -12,7 +13,7 @@ from urllib.parse import urlparse
 from twitchdl import twitch, utils
 from twitchdl.download import download_file, download_files
 from twitchdl.exceptions import ConsoleError
-from twitchdl.output import print_out, print_video
+from twitchdl.output import print_out, print_video, save_json_video
 
 
 def _continue():
@@ -59,13 +60,10 @@ def videos(args):
         total = videos["totalCount"]
         last = first + count - 1
 
-        print_out("-" * 80)
-        print_out("<yellow>Showing videos {}-{} of {}</yellow>".format(first, last, total))
-
         for video in videos["edges"]:
             print_video(video["node"])
 
-        if not has_more or not _continue():
+        if not has_more:
             break
 
         first += count
@@ -81,6 +79,64 @@ def _parse_playlists(playlists_m3u8):
         resolution = "x".join(str(r) for r in p.stream_info.resolution)
         yield name, resolution, p.uri
 
+def videos_id_only(channel_name, limit, sort, type, game, **kwargs):
+    game_ids = _get_game_ids(game)
+
+    generator = twitch.channel_videos_generator(
+        channel_name, limit, sort, type, game_ids=game_ids)
+
+    first = 1
+
+    for videos, has_more in generator:
+        count = len(videos["edges"]) if "edges" in videos else 0
+        total = videos["totalCount"]
+        last = first + count - 1
+
+        for video in videos["edges"]:
+            video_id = video["node"]["id"]
+
+            if not os.path.isfile(str(Path.home())+"/.twitchdownloads/"+video_id):
+                print(video["node"]["id"])
+
+
+        if not has_more:
+            break
+
+        first += count
+
+
+def download_all_videos(channel_name, limit, sort, type, game, **kwargs):
+    game_ids = _get_game_ids(game)
+
+    generator = twitch.channel_videos_generator(
+        channel_name, limit, sort, type, game_ids=game_ids)
+
+    first = 1
+
+    for videos, has_more in generator:
+        count = len(videos["edges"]) if "edges" in videos else 0
+        total = videos["totalCount"]
+        last = first + count - 1
+
+        for video in videos["edges"]:
+            video_id = video["node"]["id"]
+
+            if os.path.isfile(str(Path.home())+"/.twitchdownloads/"+video_id):
+                print ("File exist")
+            else:
+                print("Downloading", video_id)
+                #_download_video(video_id, **kwargs)
+
+
+
+        if not has_more:
+            break
+
+        first += count
+
+
+def _select_quality(playlists):
+    no = 1 #utils.read_int("Choose quality", min=1, max=len(playlists) + 1, default=1)
 
 def _get_playlist_by_name(playlists, quality):
     for name, _, uri in playlists:
@@ -109,6 +165,7 @@ def _join_vods(playlist_path, target):
         "-c", "copy",
         target,
         "-stats",
+        "-y",
         "-loglevel", "warning",
     ]
 
@@ -129,7 +186,7 @@ def _video_target_filename(video, format):
         utils.slugify(video['title']),
     ])
 
-    return name + "." + format
+    return video['_id'][1:] + "." + format
 
 
 def _get_vod_paths(playlist, start, end):
@@ -154,10 +211,17 @@ def _get_vod_paths(playlist, start, end):
 
 def _crete_temp_dir(base_uri):
     """Create a temp dir to store downloads if it doesn't exist."""
+<<<<<<< HEAD
     path = urlparse(base_uri).path.lstrip("/")
     temp_dir = Path(tempfile.gettempdir(), "twitch-dl", path)
     temp_dir.mkdir(parents=True, exist_ok=True)
     return temp_dir
+=======
+    path = urlparse(base_uri).path
+    directory = '{}/temp/twitch-dl{}'.format(str(Path.home()), path)
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    return directory
+>>>>>>> Hotglueing some features onto the codebase
 
 
 VIDEO_PATTERNS = [
@@ -248,9 +312,15 @@ def _download_video(video_id, args):
     if args.start and args.end and args.end <= args.start:
         raise ConsoleError("End time must be greater than start time")
 
+    if os.path.isfile(str(Path.home())+"/.twitchdownloads/"+video_id):
+        print ("File already downloaded")
+        return
+
     print_out("<dim>Looking up video...</dim>")
     video = twitch.get_video(video_id)
 
+    save_json_video(video_id, video, _video_target_filename(video, "json"))
+    
     print_out("Found: <blue>{}</blue> by <yellow>{}</yellow>".format(
         video['title'], video['channel']['display_name']))
 

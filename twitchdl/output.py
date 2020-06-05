@@ -2,6 +2,7 @@
 
 import sys
 import re
+import json
 
 from twitchdl import utils
 
@@ -74,3 +75,7 @@ def print_video(video):
     print_out("<blue>{}</blue> {}".format(channel, playing))
     print_out("Published <blue>{}</blue>  Length: <blue>{}</blue> ".format(published_at, length))
     print_out("<i>{}</i>".format(url))
+
+def save_json_video(video_id, video, filename):
+    with open(filename, 'w') as outfile:
+        json.dump(video, outfile)

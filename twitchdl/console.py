@@ -80,6 +80,76 @@ COMMANDS = [
         ],
     ),
     Command(
+        name="videos_id_only",
+        description="List videos from a channel",
+        arguments=[
+            (["channel_name"], {
+                "help": "channel name",
+                "type": str,
+            }),
+            (["-g", "--game"], {
+                "help": "Show videos of given game (can be given multiple times)",
+                "action": "append",
+                "type": str,
+            }),
+            (["-l", "--limit"], {
+                "help": "Number of videos to fetch (default 10, max 100)",
+                "type": limit,
+                "default": 10,
+            }),
+            (["-s", "--sort"], {
+                "help": "Sorting order of videos. (default: time)",
+                "type": str,
+                "choices": ["views", "time"],
+                "default": "time",
+            }),
+            (["-t", "--type"], {
+                "help": "Broadcast type. (default: archive)",
+                "type": str,
+                "choices": ["archive", "highlight", "upload"],
+                "default": "archive",
+            }),
+        ],
+    ),
+    Command(
+        name="download_all_videos",
+        description="List videos from a channel",
+        arguments=[
+            (["channel_name"], {
+                "help": "channel name",
+                "type": str,
+            }),
+            (["-g", "--game"], {
+                "help": "Show videos of given game (can be given multiple times)",
+                "action": "append",
+                "type": str,
+            }),
+            (["-l", "--limit"], {
+                "help": "Number of videos to fetch (default 10, max 100)",
+                "type": limit,
+                "default": 10,
+            }),
+            (["-s", "--sort"], {
+                "help": "Sorting order of videos. (default: time)",
+                "type": str,
+                "choices": ["views", "time"],
+                "default": "time",
+            }),
+            (["-t", "--type"], {
+                "help": "Broadcast type. (default: archive)",
+                "type": str,
+                "choices": ["archive", "highlight", "upload"],
+                "default": "archive",
+            }),
+                      (["-w", "--max_workers"], {
+                "help": "maximal number of threads for downloading vods "
+                        "concurrently (default 20)",
+                "type": int,
+                "default": 20,
+            }),
+        ],
+    ),
+    Command(
         name="download",
         description="Download a video",
         arguments=[
