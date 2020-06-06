@@ -215,17 +215,10 @@ def _get_vod_paths(playlist, start, end):
 
 def _crete_temp_dir(base_uri):
     """Create a temp dir to store downloads if it doesn't exist."""
-<<<<<<< HEAD
-    path = urlparse(base_uri).path.lstrip("/")
-    temp_dir = Path(tempfile.gettempdir(), "twitch-dl", path)
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    return temp_dir
-=======
     path = urlparse(base_uri).path
     directory = '{}/temp/twitch-dl{}'.format(str(Path.home()), path)
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
     return directory
->>>>>>> Hotglueing some features onto the codebase
 
 
 VIDEO_PATTERNS = [
